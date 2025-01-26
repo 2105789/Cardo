@@ -4,7 +4,7 @@ import './index.css'
 import App from './App.jsx'
 
 // Create an audio element and set it to play background music
-const audio = new Audio('./public/sounds/background-music.mp3'); // Replace with your music file path
+const audio = new Audio('./sounds/background-music.mp3'); // Replace with your music file path
 audio.loop = true;
 audio.volume = 0.007;
 
