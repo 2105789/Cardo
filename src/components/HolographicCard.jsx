@@ -262,13 +262,13 @@ const HolographicCard = () => {
       
       // Play sound effects based on card type
       if (type === 'good-karma') {
-        const sound = new Audio('/public/sounds/golden-card.mp3');
+        const sound = new Audio('/sounds/golden-card.mp3');
         sound.volume = 0.3;
         sound.play().catch(error => {
           console.log("Sound effect playback failed:", error);
         });
       } else if (type === 'bad-karma') {
-        const sound = new Audio('/public/sounds/bad-karma.mp3');
+        const sound = new Audio('/sounds/bad-karma.mp3');
         sound.volume = 0.3;
         sound.play().catch(error => {
           console.log("Sound effect playback failed:", error);
