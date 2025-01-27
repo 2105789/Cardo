@@ -6,7 +6,7 @@ import App from './App.jsx'
 // Create an audio element and set it to play background music
 const audio = new Audio('./sounds/background-music.mp3'); // Replace with your music file path
 audio.loop = true;
-audio.volume = 0.007;
+audio.volume = 0.01;
 
 // Add event listener to start playing when user interacts with the page
 document.addEventListener('click', () => {
