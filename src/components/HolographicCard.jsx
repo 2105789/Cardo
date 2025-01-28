@@ -255,10 +255,12 @@ const HolographicCard = () => {
       card.style.backgroundImage = `url(${cardImages[type]})`;
       
       if (type !== 'start') {
-        // Only switch turns if it's not a karma card and the action doesn't involve drawing another card
+        // Check if the player should get another turn based on the card action
         const shouldKeepTurn = type === 'good-karma' || 
                              type === 'bad-karma' || 
-                             (currentCard?.action?.toLowerCase().includes('draw'));
+                             (currentCard?.action?.toLowerCase().includes('draw')) ||
+                             (currentCard?.action?.toLowerCase().includes('one more chance')) ||
+                             (currentCard?.action?.toLowerCase().includes('take another turn'));
         
         if (!shouldKeepTurn) {
           setCurrentPlayer(currentPlayer === 'activist' ? 'citizen' : 'activist');

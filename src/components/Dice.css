@@ -14,6 +14,7 @@
 }
 
 .dice {
+    display: none;
     position: relative;
     width: 150px;
     height: 150px;
@@ -100,6 +101,7 @@
 .left { transform: rotateY(-90deg) translateZ(75px); }
 
 .roll {
+    display: none;
     cursor: pointer;
     color: #b33951;
     background-color: transparent;
