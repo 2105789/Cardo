@@ -133,17 +133,18 @@ const HolographicCard = () => {
     }
 
     // Handle regular cards - use the current player's deck
-    const playerDeck = cardDecks[currentPlayer][type];
+    const playerToUse = currentPlayer === 'activist' ? 'citizen' : 'activist';  // Draw from opponent's deck
+    const playerDeck = cardDecks[playerToUse][type];
     if (!playerDeck || playerDeck.length === 0) {
       // Reset the deck if empty
       setCardDecks(prevDecks => ({
         ...prevDecks,
-        [currentPlayer]: {
-          ...prevDecks[currentPlayer],
-          [type]: [...INITIAL_CARD_DECKS[currentPlayer][type]]
+        [playerToUse]: {
+          ...prevDecks[playerToUse],
+          [type]: [...INITIAL_CARD_DECKS[playerToUse][type]]
         }
       }));
-      return INITIAL_CARD_DECKS[currentPlayer][type][0];
+      return INITIAL_CARD_DECKS[playerToUse][type][0];
     }
     
     const randomIndex = Math.floor(Math.random() * playerDeck.length);
@@ -152,8 +153,8 @@ const HolographicCard = () => {
     // Remove the drawn card from the deck
     setCardDecks(prevDecks => ({
       ...prevDecks,
-      [currentPlayer]: {
-        ...prevDecks[currentPlayer],
+      [playerToUse]: {
+        ...prevDecks[playerToUse],
         [type]: playerDeck.filter((_, index) => index !== randomIndex)
       }
     }));
@@ -249,21 +250,25 @@ const HolographicCard = () => {
         if (!hasDrawnFirstCard) {
           setHasDrawnFirstCard(true);
         }
-      }
-      
-      setCardType(type);
-      card.style.backgroundImage = `url(${cardImages[type]})`;
-      
-      if (type !== 'start') {
-        // Check if the player should get another turn based on the card action
-        const shouldKeepTurn = type === 'good-karma' || 
-                             type === 'bad-karma' || 
-                             (currentCard?.action?.toLowerCase().includes('draw')) ||
-                             (currentCard?.action?.toLowerCase().includes('one more chance')) ||
-                             (currentCard?.action?.toLowerCase().includes('take another turn'));
+
+        setCardType(type);
+        card.style.backgroundImage = `url(${cardImages[type]})`;
         
-        if (!shouldKeepTurn) {
-          setCurrentPlayer(currentPlayer === 'activist' ? 'citizen' : 'activist');
+        if (type !== 'start') {
+          // Check if the player should get another turn based on the drawn card's action
+          const action = drawnCard?.action?.toLowerCase() || '';
+          const shouldKeepTurn = type === 'good-karma' || 
+                               type === 'bad-karma' || 
+                               action.includes('draw') ||
+                               action.includes('one more chance') ||
+                               action.includes('take another turn') ||
+                               action.includes('draw one more') ||
+                               action.includes('draw another');
+          
+          // Only switch turns if the player shouldn't keep their turn
+          if (!shouldKeepTurn) {
+            setCurrentPlayer(prev => prev === 'activist' ? 'citizen' : 'activist');
+          }
         }
       }
       
