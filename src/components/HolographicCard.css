@@ -638,6 +638,14 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Hide turn indicator when no card has been drawn yet */
+.card-container[data-has-drawn-first-card="false"] .turn-indicator {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .card-action {

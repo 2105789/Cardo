@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './HolographicCard.css';
+import Dice from './Dice';
 
 const INITIAL_CARD_DECKS = {
   activist: {
@@ -83,6 +84,7 @@ const HolographicCard = () => {
   const [currentPlayer, setCurrentPlayer] = useState('activist');
   const [cardDecks, setCardDecks] = useState(INITIAL_CARD_DECKS);
   const [currentCard, setCurrentCard] = useState(cardContent.start);
+  const [hasDrawnFirstCard, setHasDrawnFirstCard] = useState(false);
   let timeoutId = null;
 
   // Card image mapping
@@ -244,6 +246,9 @@ const HolographicCard = () => {
       } else {
         const drawnCard = drawRandomCard(type);
         setCurrentCard(drawnCard);
+        if (!hasDrawnFirstCard) {
+          setHasDrawnFirstCard(true);
+        }
       }
       
       setCardType(type);
@@ -299,9 +304,9 @@ const HolographicCard = () => {
   };
 
   return (
-    <div className="card-container" data-card-type={cardType}>
+    <div className="card-container" data-card-type={cardType} data-has-drawn-first-card={hasDrawnFirstCard}>
       <div className="turn-indicator">
-        Next Turn: {currentPlayer === 'activist' ? 'Activist' : 'Citizen'}
+        Current Turn: {currentPlayer === 'citizen' ? 'Activist' : 'Citizen'}
       </div>
       <style ref={styleRef}></style>
       <div 
@@ -366,6 +371,7 @@ const HolographicCard = () => {
           Bad Karma
         </button>
       </div>
+      <Dice />
     </div>
   );
 };
