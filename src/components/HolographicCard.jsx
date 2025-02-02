@@ -81,7 +81,7 @@ const HolographicCard = () => {
   const [cardType, setCardType] = useState('start');
   const [isFlipping, setIsFlipping] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
-  const [currentPlayer, setCurrentPlayer] = useState('activist');
+  const [currentPlayer, setCurrentPlayer] = useState('citizen');
   const [cardDecks, setCardDecks] = useState(INITIAL_CARD_DECKS);
   const [currentCard, setCurrentCard] = useState(cardContent.start);
   const [hasDrawnFirstCard, setHasDrawnFirstCard] = useState(false);
@@ -121,13 +121,9 @@ const HolographicCard = () => {
 
   const drawRandomCard = (type) => {
     // Handle karma cards separately
-    if (type === 'good-karma') {
-      const deck = cardDecks.karma.good;
-      const randomIndex = Math.floor(Math.random() * deck.length);
-      return deck[randomIndex];
-    }
-    if (type === 'bad-karma') {
-      const deck = cardDecks.karma.bad;
+    if (type === 'good-karma' || type === 'bad-karma') {
+      const karmaType = type === 'good-karma' ? 'good' : 'bad';
+      const deck = cardDecks.karma[karmaType];
       const randomIndex = Math.floor(Math.random() * deck.length);
       return deck[randomIndex];
     }
@@ -135,27 +131,46 @@ const HolographicCard = () => {
     // Handle regular cards - use the current player's deck
     const playerToUse = currentPlayer === 'activist' ? 'citizen' : 'activist';  // Draw from opponent's deck
     const playerDeck = cardDecks[playerToUse][type];
+
+    // If deck is empty, reset it with a shuffled version of the initial deck
     if (!playerDeck || playerDeck.length === 0) {
-      // Reset the deck if empty
+      // Create a new shuffled deck
+      const newDeck = [...INITIAL_CARD_DECKS[playerToUse][type]];
+      for (let i = newDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]]; // Shuffle using Fisher-Yates algorithm
+      }
+      
+      // Update the deck state
       setCardDecks(prevDecks => ({
         ...prevDecks,
         [playerToUse]: {
           ...prevDecks[playerToUse],
-          [type]: [...INITIAL_CARD_DECKS[playerToUse][type]]
+          [type]: newDeck
         }
       }));
-      return INITIAL_CARD_DECKS[playerToUse][type][0];
+      
+      // Return the first card from the newly shuffled deck
+      const drawnCard = newDeck[0];
+      setCardDecks(prevDecks => ({
+        ...prevDecks,
+        [playerToUse]: {
+          ...prevDecks[playerToUse],
+          [type]: newDeck.slice(1)
+        }
+      }));
+      return drawnCard;
     }
     
-    const randomIndex = Math.floor(Math.random() * playerDeck.length);
-    const drawnCard = playerDeck[randomIndex];
+    // Draw the top card from the deck
+    const drawnCard = playerDeck[0];
     
     // Remove the drawn card from the deck
     setCardDecks(prevDecks => ({
       ...prevDecks,
       [playerToUse]: {
         ...prevDecks[playerToUse],
-        [type]: playerDeck.filter((_, index) => index !== randomIndex)
+        [type]: playerDeck.slice(1)
       }
     }));
     
@@ -237,10 +252,8 @@ const HolographicCard = () => {
     setIsFlipping(true);
     const card = cardRef.current;
     
-    // Start flip animation
     card.classList.add('flipping');
     
-    // Change card type, image, and play sound halfway through the flip
     setTimeout(() => {
       if (type === 'start') {
         setCurrentCard(cardContent.start);
@@ -257,17 +270,38 @@ const HolographicCard = () => {
         if (type !== 'start') {
           // Check if the player should get another turn based on the drawn card's action
           const action = drawnCard?.action?.toLowerCase() || '';
-          const shouldKeepTurn = type === 'good-karma' || 
-                               type === 'bad-karma' || 
-                               action.includes('draw') ||
-                               action.includes('one more chance') ||
-                               action.includes('take another turn') ||
-                               action.includes('draw one more') ||
-                               action.includes('draw another');
+          const keepTurnPhrases = [
+            'draw',
+            'one more chance',
+            'take another turn',
+            'draw one more',
+            'draw another',
+            'take one more chance',
+            'you get to have one more chance',
+            'draw one more red card',
+            'draw one more green card',
+            'draw a',  // This will catch "draw a card" variations
+            'get to have one more',
+            'take one more',
+            'draw the',
+            'draw bad karma',
+            'draw good karma'
+          ];
+          
+          // Improved check for keep turn conditions
+          const shouldKeepTurn = 
+            type === 'good-karma' || 
+            type === 'bad-karma' ||
+            keepTurnPhrases.some(phrase => {
+              // Check if the action contains the exact phrase
+              return action.includes(phrase) || 
+                     // Also check for variations with "card" at the end
+                     action.includes(phrase + ' card');
+            });
           
           // Only switch turns if the player shouldn't keep their turn
           if (!shouldKeepTurn) {
-            setCurrentPlayer(prev => prev === 'activist' ? 'citizen' : 'activist');
+            setCurrentPlayer(currentPlayer === 'activist' ? 'citizen' : 'activist');
           }
         }
       }
@@ -313,7 +347,7 @@ const HolographicCard = () => {
   return (
     <div className="card-container" data-card-type={cardType} data-has-drawn-first-card={hasDrawnFirstCard}>
       <div className="turn-indicator">
-        Current Turn: {currentPlayer === 'citizen' ? 'Activist' : 'Citizen'}
+        Current Turn: {currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}
       </div>
       <style ref={styleRef}></style>
       <div 
@@ -355,8 +389,9 @@ const HolographicCard = () => {
         >
           Green
         </button>
+        {/*  
         <button 
-          className="card-button skip"
+          className="card-button skip hidden invisible"
           onClick={handleSkipTurn}
           style={{
             backgroundColor: '#444',
@@ -365,6 +400,7 @@ const HolographicCard = () => {
         >
           Skip Turn
         </button>
+        */}
         <button 
           className="card-button good-karma"
           onClick={() => handleCardChange('good-karma')}
